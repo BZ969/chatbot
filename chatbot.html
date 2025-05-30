@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JasaKita Chatbot</title>
+    <style>
+        /* CSS Digabungkan di sini */
+        :root {
+            /* Light Mode Colors - Sesuai Desain */
+            --bg-light: #FFFFFF;
+            --header-bg-light: #3A5FCD; /* Biru dari perkiraan desain */
+            --header-text-light: #FFFFFF;
+            --chat-bubble-bot-bg-light: #F0F0F0; /* Abu-abu muda */
+            --chat-bubble-user-bg-light: #F0F0F0; /* Abu-abu muda untuk tombol "Hai" */
+            --chat-text-light: #333333;
+            --input-area-bg-light: #F0F0F0;
+            --input-text-light: #333333;
+            --placeholder-text-light: #888888;
+            --send-icon-color-light: #555555;
+            --toggle-bg-light: #CDCDCD; /* Latar belakang toggle saat light mode */
+            --toggle-slider-bg-light: #FFFFFF; /* Warna bulatan slider */
+            --toggle-icon-color-light: #FFC107; /* Warna ikon matahari */
+
+            /* Dark Mode Colors - Asumsi/Penyesuaian */
+            --bg-dark: #1E1E1E; /* Latar belakang utama gelap */
+            --header-bg-dark: #2C3E50; /* Biru lebih gelap untuk header dark mode */
+            --header-text-dark: #ECF0F1;
+            --chat-bubble-bot-bg-dark: #33373A; /* Abu-abu gelap untuk bubble bot */
+            --chat-bubble-user-bg-dark: #007BFF; /* Biru untuk bubble user di dark mode (agar kontras) */
+            --chat-text-dark: #EAEAEA;
+            --input-area-bg-dark: #282C2F;
+            --input-text-dark: #EAEAEA;
+            --placeholder-text-dark: #AAAAAA;
+            --send-icon-color-dark: #CCCCCC;
+            --toggle-bg-dark: #4A4A4A; /* Latar belakang toggle saat dark mode */
+            --toggle-slider-bg-dark: #333333; /* Warna bulatan slider */
+            --toggle-icon-color-dark: #87CEEB; /* Warna ikon bulan (biru langit muda) */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.light-mode {
+            background-color: var(--bg-light);
+            color: var(--chat-text-light);
+        }
+
+        body.dark-mode {
+            background-color: var(--bg-dark);
+            color: var(--chat-text-dark);
+        }
+
+        #chat-app-container {
+            width: 100%;
+            max-width: 400px; /* Lebar maksimum seperti di mobile */
+            height: 100vh; /* Tinggi penuh untuk mobile, atau atur max-height untuk desktop */
+            max-height: 700px; /* Contoh tinggi maksimum untuk desktop */
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-light); /* Akan di-override oleh dark mode */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 8px; /* Opsional, jika tidak ingin full screen di desktop */
+            overflow: hidden; /* Untuk menjaga border-radius */
+        }
+
+        body.dark-mode #chat-app-container {
+            background-color: var(--bg-dark);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Header */
+        #chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            transition: background-color 0.3s ease;
+        }
+        body.light-mode #chat-header {
+            background-color: var(--header-bg-light);
+            color: var(--header-text-light);
+        }
+        body.dark-mode #chat-header {
+            background-color: var(--header-bg-dark);
+            color: var(--header-text-dark);
+        }
+
+        #chat-header .header-title {
+            display: flex;
+            align-items: baseline;
+        }
+        #chat-header .header-title h1 {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        #chat-header .header-title span {
+            font-size: 0.9em;
+            font-weight: 300;
+        }
+
+        /* Theme Switcher */
+        .theme-switcher {
+            display: flex;
+            align-items: center;
+        }
+        .toggle-label {
+            position: relative;
+            display: inline-block;
+            width: 50px; /* Lebar toggle */
+            height: 26px; /* Tinggi toggle */
+        }
+        .toggle-label input[type="checkbox"] {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 26px;
+            transition: background-color 0.3s ease;
+            display: flex; /* Untuk memposisikan ikon di dalam slider */
+            align-items: center;
+        }
+        body.light-mode .slider {
+            background-color: var(--toggle-bg-light);
+        }
+        body.dark-mode .slider {
+            background-color: var(--toggle-bg-dark);
+        }
+
+        .slider .icon-container {
+            position: absolute;
+            left: 3px; /* Posisi awal ikon/bulatan */
+            width: 20px; /* Ukuran bulatan */
+            height: 20px; /* Ukuran bulatan */
+            background-color: var(--toggle-slider-bg-light); /* Warna bulatan */
+            border-radius: 50%;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        body.dark-mode .slider .icon-container {
+            background-color: var(--toggle-slider-bg-dark);
+        }
+
+        .toggle-label input:checked + .slider .icon-container {
+            transform: translateX(24px); /* Jarak geser bulatan */
+        }
+
+        .theme-icon {
+            width: 14px; /* Ukuran ikon di dalam bulatan */
+            height: 14px;
+            transition: color 0.3s ease;
+        }
+        body.light-mode .theme-icon {
+            color: var(--toggle-icon-color-light); /* Warna ikon matahari */
+        }
+        body.dark-mode .theme-icon {
+             color: var(--toggle-icon-color-dark); /* Warna ikon bulan */
+        }
+
+
+        /* Chat Messages Area */
+        #chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        body.light-mode #chat-messages {
+            background-color: var(--bg-light);
+        }
+        body.dark-mode #chat-messages {
+            background-color: var(--bg-dark);
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 75%;
+            line-height: 1.4;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .message p {
+            margin: 0;
+            word-wrap: break-word;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            border-bottom-left-radius: 5px; /* Sesuai desain */
+        }
+        body.light-mode .bot-message {
+            background-color: var(--chat-bubble-bot-bg-light);
+            color: var(--chat-text-light);
+        }
+        body.dark-mode .bot-message {
+            background-color: var(--chat-bubble-bot-bg-dark);
+            color: var(--chat-text-dark);
+        }
+
+        .user-message {
+            align-self: flex-end;
+            border-bottom-right-radius: 5px; /* Sesuai desain */
+        }
+        body.light-mode .user-message {
+            background-color: var(--chat-bubble-user-bg-light); /* Ini untuk "Hai" button */
+            color: var(--chat-text-light);
+        }
+        /* Untuk pesan user yang diketik, bisa beda warna jika mau */
+        body.light-mode .user-message.typed {
+            background-color: #007AFF; /* Contoh warna beda untuk pesan user */
+            color: #FFFFFF;
+        }
+
+        body.dark-mode .user-message {
+            background-color: var(--chat-bubble-user-bg-dark);
+            color: var(--chat-text-dark);
+        }
+        .user-message.quick-reply { /* Gaya khusus untuk tombol "Hai" */
+            cursor: pointer; /* Menandakan bisa diklik */
+            text-align: center;
+        }
+
+
+        /* Chat Input Area */
+        #chat-input-area {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-top: 1px solid transparent; /* Akan diwarnai berdasarkan mode */
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        body.light-mode #chat-input-area {
+            background-color: var(--input-area-bg-light);
+            border-top-color: #E0E0E0;
+        }
+        body.dark-mode #chat-input-area {
+            background-color: var(--input-area-bg-dark);
+            border-top-color: #3A3A3A;
+        }
+
+        #user-input {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            padding: 10px 15px;
+            font-size: 1em;
+            border-radius: 20px; /* Membuat input field melengkung */
+            background-color: transparent; /* Input akan mengambil warna dari #chat-input-area */
+            color: inherit; /* Mengambil warna teks dari parent */
+        }
+        body.light-mode #user-input::placeholder {
+            color: var(--placeholder-text-light);
+        }
+        body.dark-mode #user-input::placeholder {
+            color: var(--placeholder-text-dark);
+        }
+
+
+        #send-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            margin-left: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .send-icon {
+            width: 24px;
+            height: 24px;
+            transition: color 0.3s ease;
+        }
+        body.light-mode .send-icon {
+            color: var(--send-icon-color-light);
+        }
+        body.dark-mode .send-icon {
+            color: var(--send-icon-color-dark);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            #chat-app-container {
+                border-radius: 0; /* Hilangkan radius di layar kecil */
+                max-height: 100vh; /* Pastikan mengisi seluruh tinggi */
+            }
+            #chat-header .header-title h1 {
+                font-size: 1.2em;
+            }
+             #chat-header .header-title span {
+                font-size: 0.8em;
+            }
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body class="light-mode"> <div id="chat-app-container">
+        <header id="chat-header">
+            <div class="header-title">
+                <h1>JasaKita</h1>
+                <span>- Admin</span>
+            </div>
+            <div class="theme-switcher">
+                <label for="theme-toggle-checkbox" class="toggle-label">
+                    <input type="checkbox" id="theme-toggle-checkbox">
+                    <span class="slider">
+                        <span class="icon-container">
+                            </span>
+                    </span>
+                </label>
+            </div>
+        </header>
+
+        <main id="chat-messages">
+            </main>
+
+        <footer id="chat-input-area">
+            <input type="text" id="user-input" placeholder="Ketikkan Pesan Disini">
+            <button id="send-button" aria-label="Kirim pesan">
+                <svg class="send-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        // JavaScript Digabungkan di sini
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const themeToggleCheckbox = document.getElementById('theme-toggle-checkbox');
+            const body = document.body;
+            const iconContainer = document.querySelector('.slider .icon-container');
+
+            // SVG Ikon
+            const sunIconSVG = `
+                <svg class="theme-icon sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 5c.552 0 1-.448 1-1V2c0-.552-.448-1-1-1s-1 .448-1 1v2c0 .552.448 1 1 1zm0 14c-.552 0-1 .448-1 1v2c0 .552.448 1 1 1s1-.448 1-1v-2c0-.552-.448-1-1 1zm-7-7c-.552 0-1-.448-1-1H2c-.552 0-1-.448-1-1s.448-1 1-1h2c.552 0 1 .448 1 1s-.448 1-1 1zm14 0c-.552 0-1-.448-1-1h-2c-.552 0-1-.448-1-1s.448-1 1-1h2c.552 0 1 .448 1 1s-.448 1-1 1zm-8.828 5.172c-.39-.39-1.024-.39-1.414 0l-1.414 1.414c-.39.39-.39 1.024 0 1.414.39.39 1.024.39 1.414 0l1.414-1.414c.39-.39.39-1.024 0-1.414zm7.07-7.07l-1.414-1.414c-.39-.39-1.024-.39-1.414 0-.39.39-.39 1.024 0 1.414l1.414 1.414c.39.39 1.024.39 1.414 0 .39-.389.39-1.023 0-1.414zM6.243 7.657c.39-.39 1.024-.39 1.414 0l1.414 1.414c.39.39.39 1.024 0 1.414-.39.39-1.024.39-1.414 0l-1.414-1.414c-.39-.39-.39-1.024 0-1.414zm10.192 8.828c.39-.39 1.024-.39 1.414 0l1.414 1.414c.39.39.39 1.024 0 1.414-.39.39-1.024.39-1.414 0l-1.414-1.414c-.39-.39-.39-1.024 0-1.414zM12 9a3 3 0 100 6 3 3 0 000-6z"/>
+                </svg>`;
+            const moonIconSVG = `
+                <svg class="theme-icon moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0c.305 0 .603.026.898.076C7.64 1.083 4 5.872 4 11.5c0 6.163 4.79 11.213 10.898 11.494A9.47 9.47 0 0112 23C5.373 23 0 17.627 0 11S5.373 0 12 0z"/>
+                </svg>`;
+
+            function setInitialTheme() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                if (savedTheme === 'dark') {
+                    body.classList.replace('light-mode', 'dark-mode');
+                    themeToggleCheckbox.checked = true;
+                    iconContainer.innerHTML = moonIconSVG;
+                } else {
+                    body.classList.replace('dark-mode', 'light-mode'); // Ensure light-mode if dark was present
+                    themeToggleCheckbox.checked = false;
+                    iconContainer.innerHTML = sunIconSVG;
+                }
+            }
+
+            setInitialTheme(); // Atur tema saat halaman dimuat
+
+            themeToggleCheckbox.addEventListener('change', () => {
+                if (themeToggleCheckbox.checked) { // Jika dicentang, artinya mau ke dark mode
+                    body.classList.replace('light-mode', 'dark-mode');
+                    iconContainer.innerHTML = moonIconSVG;
+                    localStorage.setItem('theme', 'dark');
+                } else { // Jika tidak dicentang, artinya mau ke light mode
+                    body.classList.replace('dark-mode', 'light-mode');
+                    iconContainer.innerHTML = sunIconSVG;
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+
+            function addMessageToChat(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+                if (sender === 'user') {
+                    messageDiv.classList.add('typed'); // Menambahkan kelas 'typed' untuk pesan user
+                }
+                const p = document.createElement('p');
+                p.textContent = text;
+                messageDiv.appendChild(p);
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+            }
+
+            function handleSendMessage() {
+                const messageText = userInput.value.trim();
+                if (messageText === '') return;
+
+                addMessageToChat(messageText, 'user');
+                userInput.value = '';
+
+                // Simulasi respon bot
+                setTimeout(() => {
+                    getBotResponse(messageText);
+                }, 600);
+            }
+
+            function getBotResponse(userMessage) {
+                let botMessage = "Maaf, saya belum mengerti itu.";
+                const lowerUserMessage = userMessage.toLowerCase();
+
+                if (lowerUserMessage.includes("halo") || lowerUserMessage.includes("hai")) {
+                    botMessage = "Halo juga! Ada yang bisa saya bantu hari ini?";
+                } else if (lowerUserMessage.includes("apa kabar")) {
+                    botMessage = "Kabar baik! Bagaimana denganmu?";
+                } else if (lowerUserMessage.includes("jasa apa saja") || lowerUserMessage.includes("layanan")) {
+                    botMessage = "Kami menyediakan berbagai jasa. Anda bisa sebutkan kebutuhan spesifik Anda?";
+                } else if (lowerUserMessage.includes("terima kasih")) {
+                    botMessage = "Sama-sama! Senang bisa membantu.";
+                } else if (lowerUserMessage.includes("admin")) {
+                    botMessage = "Saya adalah asisten virtual JasaKita. Jika butuh bantuan admin sungguhan, akan saya hubungkan.";
+                }
+
+                addMessageToChat(botMessage, 'bot');
+            }
+
+            sendButton.addEventListener('click', handleSendMessage);
+            userInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    handleSendMessage();
+                }
+            });
+
+            // Fungsi untuk menangani klik pada quick reply "Hai" (jika ingin difungsikan)
+            const quickReplyHai = document.querySelector('.user-message.quick-reply');
+            if (quickReplyHai) {
+                quickReplyHai.addEventListener('click', () => {
+                    userInput.value = "Hai"; // Isi input field
+                    handleSendMessage(); // Kirim pesan
+                    // Optional: hilangkan tombol quick reply setelah diklik
+                    // quickReplyHai.style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
